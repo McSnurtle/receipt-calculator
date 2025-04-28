@@ -9,3 +9,5 @@ pip install --upgrade --verbose -r requirements.txt
 
 echo Starting app
 python3 src/main.py
+
+pause
