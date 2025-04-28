@@ -8,4 +8,5 @@ echo "Upgrading dependencies"
 pip install --upgrade --verbose -r requirements.txt
 
 echo "Starting app"
-python3 src/main.py
+# flask --app flaskr run --debug
+python3 app.py
