@@ -174,5 +174,4 @@ cython_debug/
 .pypirc
 
 # Project specific data:
-*.csv
-receiptcalculator/receipt/migrations/
+# *.csv
