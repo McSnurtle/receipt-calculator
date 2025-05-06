@@ -11,4 +11,4 @@ echo "Starting local server in development mode"
 # flask --app flaskr run --debug
 python3 src/main.py
 
-read -n1 -r -p "Press any key to continue..." key
+read -n1 -r -p "Press any key to continue . . ." key
