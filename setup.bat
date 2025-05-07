@@ -7,8 +7,8 @@ call .\venv\Scripts\activate
 echo Fetching and upgrading dependencies
 pip install --upgrade --verbose -r requirements.txt
 
-echo Starting local server in development mode
-:: flask run --app flaskr run --debug
+echo Starting application
 python3 src/main.py
 
+deactivate
 pause
