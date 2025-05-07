@@ -1,12 +1,9 @@
 #src/utils/platform.py
 # imports
 import os
-import pathlib
 import json
-from typing import Any, List, Dict
-from .models import Receipt
+from typing import Any
 from tkinter.messagebox import Message
-from tkinter import Toplevel
 
 # ********************
 # FUNCTIONS
@@ -25,10 +22,10 @@ def popup(title: str = "Popup Notification", message: str = "", icon: str = "inf
 
 def update_conf(key: str, value: Any) -> dict:
     """Updates the config found at `etc/conf.json` and writes it.
-    
+
     :param key: str, the option to modify.
     :param value: Any, the value to set the option to.
-    
+
     :return conf: dict, the configuration post-modification."""
 
 
@@ -40,15 +37,33 @@ def update_conf(key: str, value: Any) -> dict:
     return conf
 
 
-def get_conf() -> dict:
-    """Returns a dictionary object of the configuration at `etc/conf.json`"""
-    
-    with open("etc/conf.json", "r") as f:
+
+def get_conf(generate: bool = True) -> dict:
+    """Returns a dictionary object of the configuration at `etc/conf.json`
+
+    Args:
+        generate (bool, optional): Whether to generate a new config file if one doesn't exist. Defaults to True.
+
+    Returns:
+        dict: The configuration dictionary object.
+    """
+
+    if not os.path.exists("etc/conf.json") and generate:
+        generate_conf()
+    with open("etc/conf.json", "r", encoding="utf-8") as f:
         return json.load(f)
-    
-    
+
+
+def generate_conf() -> None:
+    """Generates a new configuration file at `etc/conf.json` based on the defaults found in `etc/defaults.json`."""
+
+    with open("etc/defaults.json", "r", encoding="utf-8") as source:
+        with open("etc/conf.json", "w", encoding="utf-8") as target:
+            target.write(source.read())
+
+
 def get_version() -> str:
     """Returns a semver version derived from `etc/version.json`"""
-    
-    with open("etc/version.json", "r") as f:
+
+    with open("etc/version.json", "r", encoding="utf-8") as f:
         return json.load(f)["version"]
