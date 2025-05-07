@@ -1,3 +1,8 @@
+"""Platform-specific utilities for the application.
+
+Returns:
+    None: N/A
+"""
 #src/utils/platform.py
 # imports
 import os
@@ -31,7 +36,8 @@ def update_conf(key: str, value: Any) -> dict:
 
     conf: dict = get_conf()
     conf[key] = value
-    with open("etc/conf.json", "w") as f:
+    print(f"Updating config: {key} = {value}")
+    with open("etc/conf.json", "w", encoding="utf-8") as f:
         payload: str = json.dumps(conf)
         f.write(payload)
     return conf
