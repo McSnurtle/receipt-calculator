@@ -6,7 +6,6 @@ import tkinter as tk
 from typing import Any, List, Dict
 from utils.models import Receipt
 from utils.ui import ReceiptPreview, ScrollableFrame
-from utils.platform import popup, get_receipts
 
 # vars
 pass
@@ -28,9 +27,11 @@ class Root(tk.Tk):
     def setup(self) -> None:
         """Initial setup of the tkinter window"""
 
-        self.title("Bill Splitter 9000 - by Mc_Snurtle")
+        self.title(f"Bill Splitter 9000 v{get_version()} - by Mc_Snurtle")
         self.geometry(f"400x600+{(self.winfo_screenwidth()//2)-200}+{(self.winfo_screenheight()//2)-300}")
-        self.resizable = False
+        self.resizable(False, False)
+
+        self.current_receipt: Receipt | None = get_conf()["lastReceipt"]
 
         self.fetch_receipts()
 
