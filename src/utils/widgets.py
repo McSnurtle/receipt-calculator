@@ -1,4 +1,4 @@
-#src/utils/ui.py
+#src/utils/widgets.py
 # imports
 import platform
 import tkinter as tk
@@ -17,22 +17,24 @@ class ReceiptPreview(tk.Frame):
         self.edit: callable = edit_func
         
         # layout
-        info_frame: tk.Frame = tk.Frame(self, bg="#FF0000")
+        info_frame: tk.Frame = tk.Frame(self)
         info_frame.pack(padx=5, pady=5, side=tk.LEFT)
-        title_label: tk.Label = tk.Label(self, text=self.receipt.name, font=("Arial", 18))
+        title_label: tk.Label = tk.Label(info_frame, text=self.receipt.name, font=("Arial", 18))
         title_label.pack(padx=5, pady=5, side=tk.TOP, anchor=tk.NW) # top left
-        date_label: tk.Label = tk.Label(self, text=self.receipt.date, font=("Arial", 10))
+        date_label: tk.Label = tk.Label(info_frame, text=self.receipt.date, font=("Arial", 10))
         date_label.pack(padx=5, pady=5, side=tk.BOTTOM, anchor=tk.SW)   # top left subheader
         
-        delete_button: tk.Button = tk.Button(self, text="🗑", command=self.delete)
+        control_frame: tk.Frame = tk.Frame(self)
+        control_frame.pack(padx=5, pady=5, side=tk.RIGHT)
+        delete_button: tk.Button = tk.Button(control_frame, text="🗑", command=self.delete)
         delete_button.pack(padx=5, pady=5, side=tk.RIGHT, anchor=tk.E)
-        edit_button: tk.Button = tk.Button(self, text="🖉", command=self.edit)
+        edit_button: tk.Button = tk.Button(control_frame, text="🖉", command=self.edit)
         edit_button.pack(padx=5, pady=5, side=tk.RIGHT, anchor=tk.E)
 
 
 class PlaceholderEntry(tk.Entry):
-    def __init__(self, placeholder: str = "", primary_colour: str = "#FFFFFF", secondary_colour: str = "#666666", *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, master: tk.Widget | Any, placeholder: str = "", primary_colour: str = "#FFFFFF", secondary_colour: str = "#666666", *args, **kwargs):
+        super().__init__(master=master, *args, **kwargs)
         
         self._focused: bool = False
         self._placeholder: str = placeholder
@@ -53,6 +55,32 @@ class PlaceholderEntry(tk.Entry):
         if self.get() is None:
             self.insert(1.0, self._placeholder)
             self.config(fg=self._secondary_colour)
+
+
+class PopupEntry(tk.Toplevel):
+    def __init__(self, master: tk.Widget | Any, title: str, message: str, placeholder: str, parent: tk.Widget, *args, **kwargs):
+        super().__init__(master=master, *args, **kwargs)
+        
+        self.title(title)
+        self.resizable(False, False)
+        
+        message: tk.Label = tk.Label(self, text=message)
+        message.pack(padx=10, pady=10, anchor=tk.CENTER)
+        
+        entry_frame: tk.Frame = tk.Frame(self)
+        entry_frame.pack(padx=10, pady=5, fill=tk.X, expand=True)
+        self.entry: tk.Entry = PlaceholderEntry(master=self, placeholder=placeholder)
+        self.entry.pack(padx=5, pady=5, side=tk.LEFT)
+        submit: tk.Button = tk.Button(self, text="Submit", command=submit)
+        submit.pack(padx=5, pady=5, side=tk.RIGHT)
+
+    def submit(self) -> str:
+        self.destroy()
+        return self.entry.get()
+        
+    def __str__(self) -> str:
+        return self.entry.get()
+
 
 
 # ********************

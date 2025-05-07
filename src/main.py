@@ -1,11 +1,12 @@
 #src/main.py
 # imports
-import os
-import json
 import tkinter as tk
-from typing import Any, List, Dict
+from tkinter.filedialog import askopenfile
+from typing import Any, List, Dict, IO
 from utils.models import Receipt
-from utils.ui import ReceiptPreview, ScrollableFrame
+from utils.platform import get_version, get_conf
+from utils.receipts import get_last_receipt, get_receipts, get_receipt
+from pages import Overview, Editor
 
 # vars
 pass
@@ -17,6 +18,7 @@ class Root(tk.Tk):
         
         self.frames: Dict[str, tk.Frame] = {}
         self.receipts: List[Receipt] = []
+        self.current_receipt: Receipt | None = None
 
         self.setup()
         self.layout()
@@ -33,26 +35,27 @@ class Root(tk.Tk):
 
         self.current_receipt: Receipt | None = get_conf()["lastReceipt"]
 
-        self.fetch_receipts()
-
     def layout(self) -> None:
         """Setup the layout for the window."""
 
-        # receipt overview
-        overview_frame: tk.Frame = tk.Frame(self)
-        self.frames["overview"] = overview_frame
-        title_label: tk.Label = tk.Label(overview_frame, text="Receipts", font=("Helvetica", 24))
-        title_label.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.NW)
-        receipt_list_frame: tk.Frame = ScrollableFrame(parent=overview_frame)
-        receipt_list_frame.pack(padx=10, pady=10, fill=tk.BOTH, expand=True, side=tk.BOTTOM, anchor=tk.S)
-        for receipt in get_receipts():
-            receipt_frame: tk.Frame = ReceiptPreview(receipt=receipt, edit_func=lambda r=receipt.name: print(f"Clicked {r}!"), del_func=lambda r=receipt.name: print(f"Deleting {r}!"), master=receipt_list_frame.viewPort)
-            receipt_frame.pack(padx=10, pady=10, side=tk.TOP, anchor=tk.N, fill=tk.X, expand=True)
+        # menubar
+        menubar: tk.Menu = tk.Menu(self, tearoff=False)
+        self["menu"] = menubar
+        filemenu: tk.Menu = tk.Menu(menubar, tearoff=False)
+        filemenu.add_command(label="Save (Ctrl+S)", command=self.save_receipt)
+        filemenu.add_command(label="Open (Ctrl+O)", command=self.open_receipt)
+        filemenu.add_separator()
+        filemenu.add_command(label="Create New (Ctrl+N)", command=self.new_receipt)
+        menubar.add_cascade(menu=filemenu, label="Receipt")
 
-        # receipt creator
-        
+        # receipt overview
+        overview_frame: tk.Frame = Overview(self, edit_func=self.open_receipt, del_func=self.del_receipt)
+        self.frames["overview"] = overview_frame
+
         # receipt editor
-    
+        editor_frame: tk.Frame = Editor(self, self.current_receipt)
+        self.frames["editor"] = editor_frame
+
     def show_frame(self, key: str) -> Dict[str, tk.Frame]:
         """Hides all frames and shows the specified frame.
         
@@ -61,12 +64,33 @@ class Root(tk.Tk):
         :return hidden_frames: Dict[str, tk.Frame], a dictionary of all the frames that were forcibly hidden during the showing of the specified frame.
         """
 
+        print(f"SHOWING FRAME: {key}")
         [frame.pack_forget() for frame in self.frames.values()]
         self.frames[key].pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
         return self.frames.copy().pop(key)
+
+    def save_receipt(self, callback: Any = None) -> Receipt:
+        pass
     
-    def fetch_receipts(self) -> List[Receipt]:
-        receipts: List[Receipt] = get_receipts()
+    def open_receipt(self, filename: str | None = None) -> Receipt:
+        if filename is None:    # if not filename was selected
+            file: IO[Any] = askopenfile(mode="r", defaultextension=".json") # ask the user to pick a file
+            if file is None:    # if user cancelled operation
+                return
+            self.current_receipt = Receipt.from_file(file)
+        else:
+            self.current_receipt = get_receipt(filename)
+        self.populate_editor()
+        self.show_frame("editor")
+    
+    def new_receipt(self, callback: Any = None) -> Receipt:
+        pass
+    
+    def del_receipt(self, filename: str) -> str:
+        return filename
+            
+    def populate_editor(self) -> None:
+        self.frames["editor"] = Editor(self.current_receipt)
     
     
 if __name__ == "__main__":

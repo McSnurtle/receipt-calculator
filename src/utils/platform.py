@@ -8,6 +8,9 @@ from .models import Receipt
 from tkinter.messagebox import Message
 from tkinter import Toplevel
 
+# ********************
+# FUNCTIONS
+# ********************
 
 def popup(title: str = "Popup Notification", message: str = "", icon: str = "info", options: str = "ok") -> str | None:
     """Display a universal popup notification with the specified message
@@ -20,47 +23,32 @@ def popup(title: str = "Popup Notification", message: str = "", icon: str = "inf
     return Message(title=title, message=message, icon=icon, type=options).show()
 
 
-# UNFINISHED!!!
-def popup_input(title: str = "Popup Input", message: str = "") -> str | None:
-    return ""
-
-
-def get_last_receipt() -> str | None:
-    with open(f"etc/conf.json", "r") as f:
-        last_receipt: str | None = json.loads(f)["lastReceipt"]
-        if os.path.exists(f"data/receipts/{last_receipt}.json"):
-            return last_receipt
-    return
-
-
-def get_receipts() -> List[Receipt]:    # this whole function could be compressed into a single line with list comprehension! I've resisted the temptation in the name of readability :eyes:
-    """Returns a list of Receipt-like objects derived from `data/receipts/`"""
-
-    receipts: List[Receipt] = []
-    filepaths: List[str] = [file for file in os.listdir(f"data/receipts/") if file.endswith(".json")]
-
-    for filename in filepaths:
-        with open(f"data/receipts/{filename}", "r") as f:
-            receipt: Receipt = Receipt.from_dict(data=json.load(f))
-            receipts.append(receipt)
-    return receipts
-
-
-def get_receipts_compact() -> List[Receipt]:    # and for the aforementioned compacted version...
-    """Returns a list of Receipt-like objects derived from `data/receipts/`"""
+def update_conf(key: str, value: Any) -> dict:
+    """Updates the config found at `etc/conf.json` and writes it.
     
-    return [receipt for receipt in [Receipt.to_dict(json.reads(fp) for fp in [open(f"data/receipts/{filename}") for filename in [file for file in os.listdir("data/receipts/") if file.endswith(".json")]])]]
-            
-        
-def get_receipt(name: str) -> Receipt | None:
-    """Returns a Receipt object based on stored data.
+    :param key: str, the option to modify.
+    :param value: Any, the value to set the option to.
     
-    :param name: str, the filename of the receipt to check for excluding file types / extensions.
+    :return conf: dict, the configuration post-modification."""
+
+
+    conf: dict = get_conf()
+    conf[key] = value
+    with open("etc/conf.json", "w") as f:
+        payload: str = json.dumps(conf)
+        f.write(payload)
+    return conf
+
+
+def get_conf() -> dict:
+    """Returns a dictionary object of the configuration at `etc/conf.json`"""
     
-    :return receipt: Receipt, the Receipt like object to return containing item information. Returns None if the file does not exist."""
+    with open("etc/conf.json", "r") as f:
+        return json.load(f)
     
-    filepath: str = f"data/receipts/{name}.json"
-    if os.path.exists(filepath):
-        with open(filepath, "r") as f:
-            return Receipt.from_dict(json.loads(f))
-    return 
+    
+def get_version() -> str:
+    """Returns a semver version derived from `etc/version.json`"""
+    
+    with open("etc/version.json", "r") as f:
+        return json.load(f)["version"]

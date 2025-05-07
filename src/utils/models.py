@@ -1,22 +1,25 @@
 #src/utils/models.py
 # imports
 import os
+import json
+import typing
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any, Dict, List, IO, Union
+from .receipts import last_id
 
 
 class Item(Dict[str, Any]):
-    def __init__(self, name: str, buyer: str, cost: float, should_tax: bool = True):
+    def __init__(self, name: str, user: str, cost: float, should_tax: bool = True):
         """A purchased item to be tracked on a Receipt object.
         
         :param name: str, the name / description of the item that was purchased.
-        :param buyer: str, the name of the person who purchased the item.
+        :param user: str, the name of the person who the item is / was for.
         :param cost: float, the base cost of the item purchased *not* including taxes or fees.
         :param should_tax: bool, whether this item has tax applied to it or not in calculations.
         """
 
         self.name: str = name
-        self.buyer: str = buyer
+        self.user: str = user
         self.cost: float = cost
         self.should_tax: bool = should_tax
 
@@ -25,17 +28,17 @@ class Item(Dict[str, Any]):
         item: Item = Item("", "", "", "")
         try:
             item.name = data["name"]
-            item.buyer = data["buyer"]
+            item.user = data["user"]
             item.cost = data["cost"]
             item.should_tax = data["should_tax"]
         except KeyError as e:
-            print(f"{e}\n - `data` should have `name`: str, `buyer`: str, `cost`: float, and `should_tax`: bool!")
+            print(f"Got unexpected item param: {e}\n - `data` should have `name`: str, `user`: str, `cost`: float, and `should_tax`: bool!")
         return item
     
     def to_dict(self) -> Dict:
         return {
             "name": self.name,
-            "buyer": self.buyer,
+            "user": self.user,
             "cost": self.cost,
             "should_tax": self.should_tax
         }
@@ -58,18 +61,25 @@ class Receipt(List[Item]):
 
     @staticmethod
     def from_dict(data: Dict[str, Any]) -> List[Item]:
-        receipt: Receipt = Receipt("", "", "", "")
         try:
-            receipt.name = data["name"]
-            receipt.buyer = data["buyer"]
-            receipt.payee = data["payee"]
-            receipt.date = data["date"]
+            receipt: Receipt = Receipt(name=data['name'], buyer=data['buyer'], payee=data['payee'], date=data['date'])
             for item in data["items"]:
                 receipt.append(Item.from_dict(item))
         except KeyError as e:
-            raise TypeError(f"{e}\n - `data` should have `name`: str, `buyer`: str, `payee`: str, `date`: datetime.datetime, and `items`: List[Item]!")
+            raise TypeError(f"Got unexpected receipt param {e}\n - `data` should have `name`: str, `buyer`: str, `payee`: str, `date`: datetime.datetime, and `items`: List[Item]!")
         return receipt
     
+    @staticmethod
+    def from_file(file: 'Union[SupportsRead[str | bytes], IO[Incomplete]]') -> List[Item]:
+        data = json.load(file)
+        try:
+            receipt: Receipt = Receipt(name=data["name"], buyer=data["buyer"], payee=data["payee"], date=data["date"])
+            for item in [_ for _ in data["items"] if isinstance(_, dict)]:
+                receipt.append(Item.from_dict(item))
+        except KeyError as e:
+            raise TypeError(f"Got unexpected receipt param {e}\n - `data` should have `name`: str, `buyer`: str, `payee`: str, `date`: datetime.datetime, and `items`: List[Item]!")
+        return receipt
+
     def to_dict(self) -> Dict:
         """Returns a dictionary-like object containing the data from the receipt."""
         return {
