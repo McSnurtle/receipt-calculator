@@ -1,6 +1,1 @@
-{
-    "firstTime": true,
-    "salesTax": 13,
-    "theme": "automatic",
-    "lastReceipt": null
-}
+{"firstTime": true, "salesTax": 13, "theme": "automatic", "lastReceipt": 1}
