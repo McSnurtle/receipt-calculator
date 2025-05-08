@@ -86,6 +86,20 @@ class Receipt(List[Union[Item, object]]):
         self.payee: str | None = payee
         self.date: str | None = date
 
+    @property
+    def items(self) -> List[Union[Item, object]]:
+        """Returns the list of items in the receipt."""
+        return self.copy()
+
+    @property
+    def people(self) -> List[str]:
+        """Returns a list of all people who are on the receipt."""
+        people: List[str] = []
+        for item in self:
+            if isinstance(item, Item) and item.user not in people:
+                people.append(item.user)
+        return people
+
     @staticmethod
     def from_dict(data: Union[Dict[str, Any], Any]) -> Union[List[Item], object]:
         """Instantiates a new Receipt object based on the custom dictionary provided.
@@ -121,6 +135,7 @@ class Receipt(List[Union[Item, object]]):
         Returns:
             List[Item]: _description_
         """
+
         data = json.load(file)
         try:
             receipt: Receipt = Receipt(name=data["name"], buyer=data["buyer"], payee=data["payee"], date=data["date"])
