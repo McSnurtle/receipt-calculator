@@ -9,7 +9,7 @@ import tkinter as tk
 from tkinter.filedialog import askopenfile
 from typing import Any, List, Dict
 from utils.models import Receipt
-from utils.platform import get_version, get_conf, update_conf
+from utils.platform_specific import get_version, get_conf, update_conf, popup
 from utils.receipts import get_receipt_by_id, get_last_receipt # type: ignore
 from pages import Overview, Editor
 

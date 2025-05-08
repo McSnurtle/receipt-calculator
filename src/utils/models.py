@@ -12,6 +12,7 @@ Returns:
 import json
 from typing import Any, Dict, List, Union
 from .id_generator import last_id
+from .platform_specific import get_conf   # type: ignore
 
 
 class Item(Dict[str, Any]):

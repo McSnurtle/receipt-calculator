@@ -3,7 +3,7 @@
 Returns:
     None: N/A
 """
-#src/utils/platform.py
+#src/utils/platform_specific.py
 # imports
 import os
 import json
