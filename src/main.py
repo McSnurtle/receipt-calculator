@@ -29,6 +29,7 @@ class Root(tk.Tk):
         self.receipts: List[Receipt] = []
         self.current_rid: int | None = get_conf()["lastReceipt"]
         self.current_receipt: Receipt | None = None
+        self.callback: Any = None   # I hate pylint sometimes
 
         self.setup()
         self.layout()
@@ -49,7 +50,8 @@ class Root(tk.Tk):
         """Initial setup of the tkinter window"""
 
         self.title(f"Bill Splitter 9000 v{get_version()} - by Mc_Snurtle")
-        self.geometry(f"400x600+{(self.winfo_screenwidth()//2)-200}+{(self.winfo_screenheight()//2)-300}")
+        x, y = (self.winfo_screenwidth() // 2) - 200, (self.winfo_screenheight() // 2) - 300
+        self.geometry(f"400x600+{x}+{y}")
         self.resizable(False, False)
 
     def layout(self) -> None:
@@ -68,20 +70,23 @@ class Root(tk.Tk):
         menubar.add_cascade(menu=filemenu, label="Receipt")
 
         # receipt overview
-        overview_frame: tk.Frame = Overview(master=self, edit_func=self.open_receipt, del_func=self.del_current_receipt)
+        overview_frame: tk.Frame = Overview(master=self, calc_func=self.calc_receipt,
+                                            del_func=self.del_current_receipt)
         self.frames["overview"] = overview_frame
 
         # receipt editor
-        editor_frame: tk.Frame = tk.Frame(self) # <== placeholder for the Editor page
-        self.frames["editor"] = editor_frame
-        # NOTE: this has been moved to `self.populate_editor` so lambdas can be used to pass in the functions relevant to the specific receipts.
+        # editor_frame: tk.Frame = tk.Frame(self) # <== placeholder for the Editor page
+        # self.frames["editor"] = editor_frame
+        # NOTE: this has been moved to `self.refresh_editor` so lambdas can be used to pass
+        # in the functions relevant to the specific receipts.
 
     def show_frame(self, key: str) -> Dict[str, tk.Frame]:
         """Hides all frames and shows the specified frame.
 
         :param key: str, the name of the frame to pack as found in `Root.frames`.
 
-        :return hidden_frames: Dict[str, tk.Frame], a dictionary of all the frames that were forcibly hidden during the showing of the specified frame.
+        :return hidden_frames: Dict[str, tk.Frame], a dictionary of all the frames that were
+        forcibly hidden during the showing of the specified frame.
         """
 
         print(f"SHOWING FRAME: {key}")
@@ -92,7 +97,8 @@ class Root(tk.Tk):
         return hidden_frames
 
     def open_receipt(self, callback: Any = None, rid: int | None = None) -> Receipt | None:
-        """Opens the specified receipt in the Editor view, asks user with file dialog if no filename is specified.
+        """Opens the specified receipt in the Editor view, asks user with file dialog if
+        no filename is specified.
 
         Args:
             rid (int | None, optional): The receipt ID of the receipt to load. Defaults to None.
@@ -100,8 +106,11 @@ class Root(tk.Tk):
         Returns:
             Receipt | None: The receipt that was loaded.
         """
+        self.callback = callback
         if rid is None:    # if no receipt ID was specified
-            file: Any = askopenfile(mode="r", defaultextension=".json", initialdir="data/receipt", initialfile=f"data/receipts/{get_last_receipt()}.json") # ask the user to pick a file
+            file: Any = askopenfile(mode="r", defaultextension=".json", initialdir="data/receipt",
+                                    initialfile=f"data/receipts/{get_last_receipt()}.json")
+            # ask the user to pick a file ^
             if file is None:    # if user cancelled operation
                 return
             self.current_receipt = Receipt.from_file(file) # type: ignore
@@ -140,13 +149,17 @@ class Root(tk.Tk):
         popup(title=f"Bill split for receipt '{receipt.name}'", message=message)
 
     def refresh_editor(self) -> None:
-        """Updates the Editor view for the window with the relevant information if the `self.current_receipt` is set."""
+        """Updates the Editor view for the window with the relevant information
+            if the `self.current_receipt` is set."""
 
         if self.current_receipt is not None:
             self.frames["editor"].pack_forget() # remove the old editor frame
             self.frames["editor"].destroy()
-            self.frames["editor"] = Editor(master=self, receipt=self.current_receipt, save_func=self.save_current_receipt, del_func=self.del_current_receipt, calc_func=self.calc_current_receipt)
-            
+            self.frames["editor"] = Editor(master=self, receipt=self.current_receipt,
+                                           save_func=self.save_current_receipt,
+                                           del_func=self.del_current_receipt,
+                                           calc_func=self.calc_receipt)
+
     def quit(self, callback: Any = None) -> None:
         """Quits the application."""
         self.destroy()

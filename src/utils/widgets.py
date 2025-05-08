@@ -3,7 +3,7 @@
 import platform
 import tkinter as tk
 from typing import Any, Union, Callable
-from .models import Receipt
+from .models import Receipt # type: ignore
 
 
 class ReceiptPreview(tk.Frame):
@@ -18,7 +18,8 @@ class ReceiptPreview(tk.Frame):
         TypeError: _description_
     """
 
-    def __init__(self, receipt: Union[Receipt, object], edit_func: Callable, del_func: Callable, *args, **kwargs):
+    def __init__(self, receipt: Union[Receipt, object], calc_func: Callable, del_func: Callable,
+                 *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         # vars
@@ -38,8 +39,8 @@ class ReceiptPreview(tk.Frame):
         control_frame.pack(padx=5, pady=5, side=tk.RIGHT)
         delete_button: tk.Button = tk.Button(control_frame, text="🗑", command=del_func)
         delete_button.pack(padx=5, pady=5, side=tk.RIGHT, anchor=tk.E)
-        edit_button: tk.Button = tk.Button(control_frame, text="🖉", command=edit_func)
-        edit_button.pack(padx=5, pady=5, side=tk.RIGHT, anchor=tk.E)
+        calc_button: tk.Button = tk.Button(control_frame, text="🖩", command=calc_func)
+        calc_button.pack(padx=5, pady=5, side=tk.RIGHT, anchor=tk.E)
 
 
 class PlaceholderEntry(tk.Entry):
@@ -47,24 +48,31 @@ class PlaceholderEntry(tk.Entry):
 
     Args:
         master (tk.Widget | Any): The parent widget.
-        placeholder (str, optional): The text to be displayed upon inactivity. Defaults to "".
-        primary_colour (str, optional): The colour of the text when active. Defaults to "#FFFFFF".
-        secondary_colour (str, optional): The colour of the text when inactive. Defaults to "#666666".
+        placeholder (str, optional): The text to be displayed upon inactivity.
+        Defaults to "".
+        primary_colour (str, optional): The colour of the text when active.
+        Defaults to "#FFFFFF".
+        secondary_colour (str, optional): The colour of the text when inactive.
+        Defaults to "#666666".
     """
 
-    def __init__(self, master: tk.Widget | Any = None, placeholder: str = "", primary_colour: str = "#FFFFFF", secondary_colour: str = "#666666", *args, **kwargs):
-        super().__init__(master=master, *args, **kwargs)
+    def __init__(self, *args, master: tk.Widget | Any = None, placeholder: str = "",
+                 primary_colour: str = "#FFFFFF", secondary_colour: str = "#666666"):
+        super().__init__(master=master, *args)
 
         self._focused: bool = False
         self._placeholder: str = placeholder
         self._primary_colour: str = primary_colour
         self._secondary_colour: str = secondary_colour
+        
+        self.callback: Any = None   # why did I install pylint again? Pain? Oh right.
 
         self.bind("<FocusIn>", self.on_focus_in)
         self.bind("<FocusOut>", self.on_focus_out)
 
     def on_focus_in(self, callback: Any = None) -> None:
         """Removes the placeholder text and colour, or 'resets' the widget for typing in."""
+        self.callback = callback
         if self.get() is self._placeholder:
             self.delete(1, tk.END)
             self.config(fg=self._primary_colour)
@@ -78,6 +86,15 @@ class PlaceholderEntry(tk.Entry):
 
 
 class PopupEntry(tk.Toplevel):
+    """A mock-popup that allows the user to input custom text.
+
+    Args:
+        master (tk.Widget | Any): The parent window that holds the mainloop.
+        title (str): The title of the popup.
+        message (str): The message / body contents of the popup.
+        placeholder (str): What the input / entry widget should say by default.
+    """
+
     def __init__(self, master: tk.Widget | Any, title: str, message: str, placeholder: str, *args, **kwargs):
         super().__init__(master=master, *args, **kwargs)
 
@@ -111,42 +128,66 @@ class PopupEntry(tk.Toplevel):
 # ********************
 # NOTICE
 # ********************
-# The following code was taken from user mp035 on GitHub from [this gist](<https://gist.github.com/mp035/9f2027c3ef9172264532fcd6262f3b01>).
+# The following code was taken from user mp035 on GitHub from:
+# [this gist](<https://gist.github.com/mp035/9f2027c3ef9172264532fcd6262f3b01>).
 # The following Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 class ScrollableFrame(tk.Frame):
+    """A customized tkinter Frame that allows for vertical scrolling. Made by mp035 on GitHub.
+
+    Args:
+        tk (tk.Frame): _description_
+    """
     def __init__(self, parent):
         super().__init__(parent) # create a frame (self)
 
         self.canvas = tk.Canvas(self, borderwidth=0, background="#ffffff")          #place canvas on self
-        self.viewPort = tk.Frame(self.canvas, background="#ffffff")                    #place a frame on the canvas, this frame will hold the child widgets
+        self.viewport = tk.Frame(self.canvas, background="#ffffff")                    #place a frame on the canvas, this frame will hold the child widgets
         self.vsb = tk.Scrollbar(self, orient="vertical", command=self.canvas.yview) #place a scrollbar on self
         self.canvas.configure(yscrollcommand=self.vsb.set)                          #attach scrollbar action to scroll of canvas
 
+        self.event: Any = None
+
         self.vsb.pack(side="right", fill="y")                                       #pack scrollbar to right of self
         self.canvas.pack(side="left", fill="both", expand=True)                     #pack canvas to left of self and expand to fil
-        self.canvas_window = self.canvas.create_window((4,4), window=self.viewPort, anchor="nw",            #add view port frame to canvas
-                                  tags="self.viewPort")
+        self.canvas_window = self.canvas.create_window((4,4), window=self.viewport, anchor="nw",
+                                  tags="self.viewPort") # add view port frame to canvas
 
-        self.viewPort.bind("<Configure>", self.on_frame_configure)                       #bind an event whenever the size of the viewPort frame changes.
-        self.canvas.bind("<Configure>", self.on_frame_configure)                       #bind an event whenever the size of the canvas frame changes.
+        self.viewport.bind("<Configure>", self.on_frame_configure)  # bind an event whenever the
+        # size of the viewPort frame changes.
+        self.canvas.bind("<Configure>", self.on_frame_configure)    # bind an event whenever the
+        # size of the canvas frame changes.
 
-        self.viewPort.bind('<Enter>', self.on_enter)                                 # bind wheel events when the cursor enters the control
-        self.viewPort.bind('<Leave>', self.on_leave)                                 # unbind wheel events when the cursorl leaves the control
+        self.viewport.bind('<Enter>', self.on_enter)    # bind wheel events when the cursor enters
+        # the control
+        self.viewport.bind('<Leave>', self.on_leave)    # unbind wheel events when the cursorl
+        # leaves the control
 
-        self.on_frame_configure(None)                                                 #perform an initial stretch on render, otherwise the scroll region has a tiny border until the first resize
+        self.on_frame_configure(None)   # perform an initial stretch on render, otherwise the
+        # scroll region has a tiny border until the first resize
 
     def on_frame_configure(self, event: Any = None) -> None:
         '''Reset the scroll region to encompass the inner frame'''
-        self.canvas.configure(scrollregion=self.canvas.bbox("all"))                 #whenever the size of the frame changes, alter the scroll region respectively.
+        self.event = event
+        self.canvas.configure(scrollregion=self.canvas.bbox("all")) # whenever the size of the frame
+        # changes, alter the scroll region respectively.
 
     def on_canvas_configure(self, event: Any = None) -> None:
         '''Reset the canvas window to encompass inner frame when required'''
         canvas_width = event.width
-        self.canvas.itemconfig(self.canvas_window, width = canvas_width)            #whenever the size of the canvas changes alter the window region respectively.
+        self.canvas.itemconfig(self.canvas_window, width = canvas_width)    # whenever the size of
+        # the canvas changes alter the window region respectively.
 
-    def on_mouse_wheel(self, event: Any = None) -> Union[int, float]:                                                  # cross platform scroll wheel event
+    def on_mouse_wheel(self, event: Any = None) -> Union[int, float]:
+        """cross platform scroll wheel event
+
+        Args:
+            event (Any, optional): callback of the binding process. Defaults to None.
+
+        Returns:
+            Union[int, float]: the amount scrolled.
+        """
         if platform.system() == 'Windows':
             self.canvas.yview_scroll(int(-1* (event.delta/120)), "units")
         elif platform.system() == 'Darwin':
@@ -158,14 +199,27 @@ class ScrollableFrame(tk.Frame):
                 self.canvas.yview_scroll( 1, "units" )
         return event.delta
 
-    def on_enter(self, event: Any = None) -> None: # bind wheel events when the cursor enters the control
+    def on_enter(self, event: Any = None) -> None:
+        """bind wheel events when the cursor enters thecontrol
+
+        Args:
+            event (Any, optional): callback of the binding process. Defaults to None.
+        """
+        self.event = event
         if platform.system() == 'Linux':
             self.canvas.bind_all("<Button-4>", self.on_mouse_wheel)
             self.canvas.bind_all("<Button-5>", self.on_mouse_wheel)
         else:
             self.canvas.bind_all("<MouseWheel>", self.on_mouse_wheel)
 
-    def on_leave(self, event: Any = None): # unbind wheel events when the cursorl leaves the control
+    def on_leave(self, event: Any = None):
+        """unbind wheel events when the cursor leaves the control
+
+        Args:
+            event (Any, optional): the callback from the binding process. Defaults to None.
+        """
+
+        self.event = event
         if platform.system() == 'Linux':
             self.canvas.unbind_all("<Button-4>")
             self.canvas.unbind_all("<Button-5>")

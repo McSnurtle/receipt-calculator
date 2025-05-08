@@ -1,10 +1,19 @@
+"""A module specifically to fetch the last (greatest) id of the receipts in `data/receipts/`
+
+Raises:
+    FileNotFoundError: When the receipts dir is missing
+
+Returns:
+    None: N/A
+"""
 #src/utils/id_generator.py
 # imports
 import os
 import json
 
 def last_id() -> int:
-    """Returns the last (greatest) receipt ID of the stored receipts in the `data/receipts/` directory."""
+    """Returns the last (greatest) receipt ID of the stored receipts in the `data/receipts/`
+        directory."""
 
     receipts_dir = 'data/receipts/'
     if not os.path.exists(receipts_dir):

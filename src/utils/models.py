@@ -2,7 +2,7 @@
 """Contains classes or 'models' for the datastructures / data types stored by the project
 
 Raises:
-    TypeError: if Item.from_dict() is ran with incompatible dictionary keys / values
+    ValueError: if Item.from_dict() is ran with incompatible dictionary keys / values
     TypeError: if Receipt.from_dict() is ran with incompatible dictionary keys / values
 
 Returns:
@@ -11,8 +11,8 @@ Returns:
 # imports
 import json
 from typing import Any, Dict, List, Union
-from .id_generator import last_id
-from .platform_specific import get_conf   # type: ignore
+from id_generator import last_id   # type: ignore
+from platform_specific import get_conf   # type: ignore
 
 
 class Item(Dict[str, Any]):
@@ -21,14 +21,17 @@ class Item(Dict[str, Any]):
         :param name: str, the name / description of the item that was purchased.
         :param user: str, the name of the person who the item is / was for.
         :param cost: float, the base cost of the item purchased *not* including taxes or fees.
+        :param tax: float | None, OPTIONAL, the tax applied to the item purchased. If None, will use the default tax from the config file.
         :param should_tax: bool, whether this item has tax applied to it or not in calculations.
         """
 
-    def __init__(self, name: str, user: str, cost: float, should_tax: bool = True):
+    def __init__(self, name: str, user: str, cost: float, tax: float | None = None, tip: float | None = None, should_tax: bool = True):
 
         self.name: str = name
         self.user: str = user
         self.cost: float = cost
+        self.tax: float = tax if tax is not None else get_conf()["defaultTax"]
+        self.tip: float = tip if tip is not None else 0.0
         self.should_tax: bool = should_tax
 
     @staticmethod
@@ -41,14 +44,11 @@ class Item(Dict[str, Any]):
         Returns:
               object: an Item object instantiated from the provided custom dictionary's values
         """
-        item: Item = Item("", "", 0, True)
+
         try:
-            item.name = data["name"]
-            item.user = data["user"]
-            item.cost = data["cost"]
-            item.should_tax = data["should_tax"]
+            item: Item = Item(data["name"], data["user"], data["cost"], data["tax"], data["tip"], data["shouldTax"])
         except KeyError as e:
-            print(f"Got unexpected item param: {e}\n - `data` should have `name`: str, `user`: str, `cost`: float, and `should_tax`: bool!")
+            raise ValueError(f"Got unexpected item param: {e}\n - `data` should have `name`: str, `user`: str, `cost`: float, `tax`: float, `tip`: float, `should_tax`: bool!") from e
         return item
 
     def to_dict(self) -> Dict[str, Any]:
