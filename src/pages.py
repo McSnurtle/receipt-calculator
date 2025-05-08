@@ -1,6 +1,9 @@
+"""The various pages and views for the application.
+"""
 #src/pages.py
 # imports
 import tkinter as tk
+from threading import Thread
 from typing import Union, Any, Callable
 from utils.models import Receipt
 from utils.widgets import ScrollableFrame, ReceiptPreview, PlaceholderEntry
@@ -16,6 +19,7 @@ class Page(tk.Frame):
     def __init__(self, master: Union[tk.Widget, Any], scrollable: bool, *args, **kwargs):
         super().__init__(master=master, *args, **kwargs)
 
+        self.threads: list[Thread] = []
         self.title_label: tk.Label = tk.Label(self, font=("Helvetica", 24))
         if scrollable:
             self.body_frame: ScrollableFrame = ScrollableFrame(self) # type: ignore
@@ -73,6 +77,9 @@ class Overview(Page):
                  *args, **kwargs):
         super().__init__(master=master, scrollable=True, *args, **kwargs)
 
+        self.calc_func: Callable = calc_func
+        self.del_func: Callable = del_func
+
         self.title_label.config(text="Receipts")
 
         for receipt in get_receipts():
@@ -85,3 +92,13 @@ class Overview(Page):
                                    expand=True)
 
         self.draw()
+
+    def spawn_calc_thread(self, receipt: Receipt) -> None:
+        """Spawns a new thread to calculate the specified receipt.
+
+        Args:
+            receipt (Receipt): The receipt to calculate.
+        """
+        thread: Thread = Thread(target=self.calc_func, args=(receipt,))
+        self.threads.append(thread)
+        thread.start()
