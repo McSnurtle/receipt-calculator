@@ -11,6 +11,7 @@ from typing import Any, List, Dict
 from utils.models import Receipt
 from utils.platform_specific import get_version, get_conf, update_conf, popup
 from utils.receipts import get_receipt_by_id, get_last_receipt # type: ignore
+from utils.calculator import total_with_tax, total_per_person
 from pages import Overview, Editor
 
 
@@ -20,6 +21,7 @@ class Root(tk.Tk):
     Args:
         tk (tk.Tk): _description_
     """
+
     def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
 
@@ -125,9 +127,17 @@ class Root(tk.Tk):
         """_summary_"""
         return filename
 
-    def calc_current_receipt(self) -> None:
+    def calc_receipt(self, receipt: Receipt) -> None:
         """_summary_"""
-        return
+        message: str = f"For receipt: {receipt.name}\n" \
+                f"Total amount: {total_with_tax(receipt)}\n" \
+                f"Average amount per person: {total_with_tax(receipt) / len(receipt.people)}\n" \
+                f"Total amount per person:\n"
+
+        _total_per_person: Dict[str, float] = total_per_person(receipt)
+        for person in receipt.people:
+            message += f"{person} owes: {_total_per_person[person]}\n"
+        popup(title=f"Bill split for receipt '{receipt.name}'", message=message)
 
     def refresh_editor(self) -> None:
         """Updates the Editor view for the window with the relevant information if the `self.current_receipt` is set."""
