@@ -11,8 +11,8 @@ Returns:
 # imports
 import json
 from typing import Any, Dict, List, Union
-from id_generator import last_id   # type: ignore
-from platform_specific import get_conf   # type: ignore
+from .id_generator import last_id   # type: ignore
+from .platform_specific import get_conf   # type: ignore
 
 
 class Item(Dict[str, Any]):

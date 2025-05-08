@@ -1,3 +1,12 @@
+"""Calculate various different totals based on Receipt objects.
+
+Raises:
+    ValueError: when there are 0 people to calculate with.
+    ValueError: when there are 0 people to calculate with.
+
+Returns:
+    None: N/A
+"""
 #src/utils/calculator.py
 # imports
 from typing import Dict
@@ -42,11 +51,13 @@ def total_with_tax(receipt: Receipt) -> float:
         float: the total amount of money owed on the receipt including tax + tip.
     """
 
-    return sum(item.cost * (1 + item.tax + item.tip if item.should_tax else 1 + item.tip) for item in receipt.items if isinstance(item, Item))
+    return sum(item.cost * (1 + item.tax + item.tip if item.should_tax else 1 + item.tip) for item
+               in receipt.items if isinstance(item, Item))
 
 
 def total_per_person(receipt: Receipt) -> Dict[str, float]:
-    """Calculates the total amount of money owed per person on the receipt based on what they purchased.
+    """Calculates the total amount of money owed per person on the receipt based on what they
+    purchased.
 
     Args:
         receipt (Receipt): The receipt object to calculate.
@@ -60,5 +71,6 @@ def total_per_person(receipt: Receipt) -> Dict[str, float]:
     debts: Dict[str, float] = {person: 0.0 for person in receipt.people}
     for item in receipt.items:
         if isinstance(item, Item):
-            debts[item.user] += item.cost * (1 + item.tax + item.tip if item.should_tax else 1 + item.tip)
+            debts[item.user] += item.cost * (1 + item.tax + item.tip if item.should_tax else
+                                             1 + item.tip)
     return debts
