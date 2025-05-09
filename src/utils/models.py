@@ -79,12 +79,14 @@ class Receipt(List[Union[Item, object]]):
     def __init__(self, name: str, buyer: str, payee: str | None, date: str | None, new: bool = False):
 
         self.name: str = name
-        self.id = last_id()
-        if new:
-            self.id += 1
         self.buyer: str = buyer
         self.payee: str | None = payee
         self.date: str | None = date
+
+    @property
+    def id(self) -> int:
+        """Returns the next ID in line according to the id of receipts stored in `data/receipts/`"""
+        return last_id() + 1
 
     @property
     def items(self) -> List[Union[Item, object]]:
