@@ -162,6 +162,7 @@ class Root(tk.Tk):
 
     def quit(self, callback: Any = None) -> None:
         """Quits the application."""
+        self.callback = callback
         self.destroy()
         self.quit()
 
