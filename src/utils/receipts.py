@@ -67,7 +67,7 @@ def get_receipt_by_id(rid: int) -> Receipt:
 def last_id() -> int:
     """Returns the latest (greatest) id of saved receipts"""
     _receipts: List[Union[Receipt, object]]= get_receipts()
-    return max([receipt.id for receipt in receipts if isinstance(receipt, Receipt)])
+    return max(receipt.id for receipt in receipts if isinstance(receipt, Receipt))
 
 
 # ******************************
@@ -75,4 +75,5 @@ def last_id() -> int:
 # *******************************
 
 receipts: List[Union[Receipt, object]] = get_receipts()
-receipts_by_id: Dict[int, Receipt] = {receipt.id: receipt for receipt in receipts if isinstance(receipt, Receipt)}
+receipts_by_id: Dict[int, Receipt] = {receipt.id: receipt for receipt in receipts if
+                                      isinstance(receipt, Receipt)}
