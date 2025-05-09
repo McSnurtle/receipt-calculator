@@ -1,0 +1,33 @@
+{
+    "name": "School Supplies",
+    "id": 1,
+    "buyer": "Mark Dietrich",
+    "payee": "Amazon Inc.",
+    "date": "2025-06-07_18:15:30",
+    "items": [
+        {
+            "name": "English Textbook x30",
+            "users": ["Lidia Petrone"],
+            "cost": 1650.0,
+            "tax": 0.20,
+            "tip": 0.0,
+            "shouldTax": true
+        },
+        {
+            "name": "Erasers x50",
+            "users": ["Lidia Petrone"],
+            "cost": 30.0,
+            "tax": 0.13,
+            "tip": 0.05,
+            "shouldTax": true
+        },
+        {
+            "name": "Microscope x20",
+            "users": ["Mellisa West"],
+            "cost": 2000.0,
+            "tax": 10.0,
+            "tip": 0.05,
+            "shouldTax": true
+        }
+    ]
+}
