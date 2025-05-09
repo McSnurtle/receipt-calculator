@@ -24,6 +24,7 @@
         {
             "name": "Rabbit litter shavings",
             "users": ["Oreo the rabbit"],
+            "cost": 13.0,
             "tax": 0.13,
             "tip": 0.10,
             "shouldTax": true
