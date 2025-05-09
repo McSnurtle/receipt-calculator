@@ -15,7 +15,7 @@
         },
         {
             "name": "Pet food & water bowls",
-            "users": ["Bozo the cat"],
+            "users": ["Bozo the cat", "Oreo the rabbit"],
             "cost": 6.0,
             "tax": 0.13,
             "tip": 0.0,

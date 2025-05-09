@@ -71,8 +71,9 @@ def total_per_person(receipt: Receipt) -> Dict[str, float]:
     debts: Dict[str, float] = {person: 0.0 for person in receipt.people}
     for item in receipt.items:
         if isinstance(item, Item):
-            debts[item.user] += item.cost * (1 + item.tax + item.tip if item.should_tax else
-                                             1 + item.tip)
+            for user in item.users:
+                debts[user] += (item.cost * (1 + item.tax + item.tip if item.should_tax else
+                                             1 + item.tip)) / len(item.users)
     return debts
 
 
@@ -101,5 +102,6 @@ def total_per_person_demo(receipt: Receipt) -> Dict[str, float]:
     for item in receipt.items:
         # Add the cost of the item + it's tax and tip percentages to the running total of the
         # end user of the item
-        debts[item.user] += item.cost * (1 + item.tax + item.tip)
+        for user in item.users:
+            debts[user] += (item.cost * (1 + item.tax + item.tip)) / len(item.users)
     return debts
