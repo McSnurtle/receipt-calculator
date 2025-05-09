@@ -1,0 +1,32 @@
+{
+    "name": "Pet Store",
+    "id": 2,
+    "buyer": "Joseph O'Byrne",
+    "date": "Oranges",
+    "payee": "Pet Smart",
+    "items": [
+        {
+            "name": "10kg Cat Kibble",
+            "users": ["Bozo the cat"],
+            "cost": 16.99,
+            "tax": 0.13,
+            "tip": 0.0,
+            "shouldTax": true
+        },
+        {
+            "name": "Pet food & water bowls",
+            "users": ["Bozo the cat"],
+            "cost": 6.0,
+            "tax": 0.13,
+            "tip": 0.0,
+            "shouldTax": true
+        },
+        {
+            "name": "Rabbit litter shavings",
+            "users": ["Oreo the rabbit"],
+            "tax": 0.13,
+            "tip": 0.10,
+            "shouldTax": true
+        }
+    ]
+}
