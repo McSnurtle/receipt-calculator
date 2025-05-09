@@ -25,10 +25,10 @@ class Item(Dict[str, Any]):
         :param should_tax: bool, whether this item has tax applied to it or not in calculations.
         """
 
-    def __init__(self, name: str, user: str, cost: float, tax: float | None = None, tip: float | None = None, should_tax: bool = True):
+    def __init__(self, name: str, users: List[str], cost: float, tax: float | None = None, tip: float | None = None, should_tax: bool = True):
 
         self.name: str = name
-        self.user: str = user
+        self.users: List[str] = users
         self.cost: float = cost
         self.tax: float = tax if tax is not None else get_conf()["defaultTax"]
         self.tip: float = tip if tip is not None else 0.0
@@ -46,7 +46,7 @@ class Item(Dict[str, Any]):
         """
 
         try:
-            item: Item = Item(data["name"], data["user"], data["cost"], data["tax"], data["tip"], data["shouldTax"])
+            item: Item = Item(data["name"], data["users"], data["cost"], data["tax"], data["tip"], data["shouldTax"])
         except KeyError as e:
             raise ValueError(f"Got unexpected item param: {e}\n - `data` should have `name`: str, `user`: str, `cost`: float, `tax`: float, `tip`: float, `should_tax`: bool!") from e
         return item
@@ -60,7 +60,7 @@ class Item(Dict[str, Any]):
 
         return {
             "name": self.name,
-            "user": self.user,
+            "users": self.users,
             "cost": self.cost,
             "should_tax": self.should_tax
         }
@@ -100,10 +100,7 @@ class Receipt(List[Union[Item, object]]):
     @property
     def people(self) -> List[str]:
         """Returns a list of all people who are on the receipt."""
-        people: List[str] = []
-        for item in self:
-            if isinstance(item, Item) and item.user not in people:
-                people.append(item.user)
+        people = list({user for item in self if isinstance(item, Item) for user in item.users})
         return people
 
     @staticmethod
@@ -123,7 +120,7 @@ class Receipt(List[Union[Item, object]]):
             receipt: Receipt = Receipt(name=data['name'], buyer=data['buyer'], payee=data['payee'], date=data['date'])
             for item in data["items"]:
                 receipt.append(Item.from_dict(item))
-                receipt.id = data["id"]
+                receipt.uid = data["id"]
         except KeyError as e:
             raise TypeError(f'Got unexpected receipt param {e}\n - `data` should have `name`: str, `buyer`: str, `payee`: str, `date`: datetime.datetime, and `items`: List[Item]!') from e
         return receipt
