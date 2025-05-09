@@ -82,11 +82,15 @@ class Receipt(List[Union[Item, object]]):
         self.buyer: str = buyer
         self.payee: str | None = payee
         self.date: str | None = date
+        self.uid: int
+        self.is_new: bool = new
 
     @property
     def id(self) -> int:
         """Returns the next ID in line according to the id of receipts stored in `data/receipts/`"""
-        return last_id() + 1
+        if self.is_new:
+            return last_id() + 1
+        return self.uid
 
     @property
     def items(self) -> List[Union[Item, object]]:
@@ -143,7 +147,7 @@ class Receipt(List[Union[Item, object]]):
             receipt: Receipt = Receipt(name=data["name"], buyer=data["buyer"], payee=data["payee"], date=data["date"])
             for item in [_ for _ in data["items"] if isinstance(_, dict)]:
                 receipt.append(Item.from_dict(item))
-                receipt.id = data["id"]
+                receipt.uid = data["id"]
         except KeyError as e:
             raise TypeError(f"Got unexpected receipt param {e}\n - `data` should have `name`: str, `buyer`: str, `payee`: str, `date`: datetime.datetime, and `items`: List[Item]!") from e
         return receipt
@@ -152,6 +156,7 @@ class Receipt(List[Union[Item, object]]):
         """Returns a dictionary-like object containing the data from the receipt."""
         return {
             "name": self.name,
+            "id": self.id if self.is_new else self.uid,
             "buyer": self.buyer,
             "payee": self.payee,
             "date": self.date,
