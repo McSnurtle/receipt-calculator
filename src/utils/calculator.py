@@ -63,7 +63,7 @@ def total_per_person(receipt: Receipt) -> Dict[str, float]:
         receipt (Receipt): The receipt object to calculate.
 
     Returns:
-        None: N/A
+        Dict[str, float]: A dictionary of each user and how much they owe as the values.
     """
 
     if not len(receipt.people) > 0:
